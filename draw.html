@@ -111,7 +111,7 @@
   <div class="entries-list">
     <h3>Competition Entries (<span id="entryCount">0</span>)</h3>
     <ul id="entriesList"></ul>
-    <div class="no-entries" id="noEntries">No entries yet. Entries are loaded from the quiz page's localStorage.</div>
+    <div class="no-entries" id="noEntries">No entries yet. Entries load from Google Sheet (if configured) or localStorage.</div>
   </div>
 
   <div class="actions">
@@ -137,7 +137,32 @@
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
-  function loadEntries(){
+  // --- Google Sheet auto-sync config ---
+  // To enable: publish your Google Sheet to the web as CSV, then paste the URL below.
+  // Instructions: Open Sheet → File → Share → Publish to web → select "Entire Document" + "CSV" → Publish → copy link.
+  const SHEET_CSV_URL = ''; // Paste published CSV URL here (leave empty to use localStorage only)
+
+  async function loadEntries(){
+    // Try loading from Google Sheet first (if configured)
+    if(SHEET_CSV_URL){
+      try {
+        const response = await fetch(SHEET_CSV_URL);
+        const csv = await response.text();
+        const rows = csv.split('\n').slice(1).filter(r => r.trim()); // skip header
+        entries = rows.map(row => {
+          const cols = row.split(',');
+          return cols[0]?.replace(/^"|"$/g, '').trim(); // first column = name
+        }).filter(n => n);
+        console.log(`Loaded ${entries.length} entries from Google Sheet`);
+        renderEntriesList();
+        drawWheel();
+        return;
+      } catch(err){
+        console.warn('Failed to load from Google Sheet, falling back to localStorage:', err);
+      }
+    }
+
+    // Fallback: load from localStorage
     try {
       const stored = localStorage.getItem('heypad_entries');
       if(stored){
