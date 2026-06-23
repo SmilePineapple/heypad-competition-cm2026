@@ -151,7 +151,7 @@
         const rows = csv.split('\n').slice(1).filter(r => r.trim()); // skip header
         entries = rows.map(row => {
           const cols = row.split(',');
-          return cols[0]?.replace(/^"|"$/g, '').trim(); // first column = name
+          return cols[1]?.replace(/^"|"$/g, '').trim(); // column 2 = Full name (column 1 is Timestamp)
         }).filter(n => n);
         console.log(`Loaded ${entries.length} entries from Google Sheet`);
         renderEntriesList();
