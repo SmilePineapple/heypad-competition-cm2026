@@ -150,8 +150,9 @@
         const csv = await response.text();
         const rows = csv.split('\n').slice(1).filter(r => r.trim()); // skip header
         entries = rows.map(row => {
-          const cols = row.split(',');
-          return cols[1]?.replace(/^"|"$/g, '').trim(); // column 2 = Full name (column 1 is Timestamp)
+          // Proper CSV parsing: handle quoted fields with commas
+          const match = row.match(/^"?([^"]*)"?,"?([^"]*)"?/);
+          return match?.[2]?.trim(); // column 2 = Full name (column 1 is Timestamp)
         }).filter(n => n);
         console.log(`Loaded ${entries.length} entries from Google Sheet`);
         renderEntriesList();
