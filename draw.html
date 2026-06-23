@@ -142,6 +142,25 @@
   // Instructions: Open Sheet → File → Share → Publish to web → select "Entire Document" + "CSV" → Publish → copy link.
   const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2Ik-UMLrhmPgDBswEx1-lyRXoZ0x0Jzv4k7cXheOXhuv2wUwP9-cYcV5T7rgr09mwtnKaSWHFwaTY/pub?output=csv';
 
+  function parseCSVRow(row){
+    const cols = [];
+    let current = '';
+    let inQuotes = false;
+    for(let i = 0; i < row.length; i++){
+      const char = row[i];
+      if(char === '"'){
+        inQuotes = !inQuotes;
+      } else if(char === ',' && !inQuotes){
+        cols.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    cols.push(current.trim());
+    return cols;
+  }
+
   async function loadEntries(){
     // Try loading from Google Sheet first (if configured)
     if(SHEET_CSV_URL){
@@ -150,9 +169,8 @@
         const csv = await response.text();
         const rows = csv.split('\n').slice(1).filter(r => r.trim()); // skip header
         entries = rows.map(row => {
-          // Proper CSV parsing: handle quoted fields with commas
-          const match = row.match(/^"?([^"]*)"?,"?([^"]*)"?/);
-          return match?.[2]?.trim(); // column 2 = Full name (column 1 is Timestamp)
+          const cols = parseCSVRow(row);
+          return cols[1]; // column 2 = Full name (index 1)
         }).filter(n => n);
         console.log(`Loaded ${entries.length} entries from Google Sheet`);
         renderEntriesList();
