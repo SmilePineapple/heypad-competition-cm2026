@@ -140,7 +140,7 @@
   // --- Google Sheet auto-sync config ---
   // To enable: publish your Google Sheet to the web as CSV, then paste the URL below.
   // Instructions: Open Sheet → File → Share → Publish to web → select "Entire Document" + "CSV" → Publish → copy link.
-  const SHEET_CSV_URL = ''; // Paste published CSV URL here (leave empty to use localStorage only)
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2Ik-UMLrhmPgDBswEx1-lyRXoZ0x0Jzv4k7cXheOXhuv2wUwP9-cYcV5T7rgr09mwtnKaSWHFwaTY/pub?output=csv';
 
   async function loadEntries(){
     // Try loading from Google Sheet first (if configured)
