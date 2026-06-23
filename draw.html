@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HeyPad Prize Draw | Jabbla UK @ CM 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --petrol:#0a5e6b;
+    --petrol-dark:#063e47;
+    --teal:#12909f;
+    --teal-light:#e6f4f5;
+    --lime:#94c11f;
+    --lime-dark:#7aa516;
+    --ink:#16323a;
+    --muted:#5a727a;
+    --line:#dbe6e8;
+    --bg:#f4f8f9;
+    --white:#ffffff;
+    --shadow:0 18px 45px rgba(6,62,71,.12);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Open Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.6;
+    padding:30px 20px;
+  }
+  h1,h2,h3{font-family:'Poppins',sans-serif;font-weight:700;line-height:1.2}
+
+  .container{max-width:900px;margin:0 auto}
+  .header{text-align:center;margin-bottom:40px}
+  .header .logo-img{height:46px;width:auto;display:inline-block;margin-bottom:14px}
+  .header h1{font-size:clamp(28px,4vw,42px);margin-bottom:8px}
+  .header p{color:var(--muted);font-size:16px}
+
+  .wheel-wrap{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:40px 30px;box-shadow:var(--shadow);margin-bottom:30px;
+  }
+  .wheel-container{position:relative;width:100%;max-width:500px;margin:0 auto 30px}
+  .wheel-canvas{width:100%;height:auto;display:block;border-radius:50%;box-shadow:0 12px 30px rgba(10,94,107,.25)}
+  .wheel-pointer{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;
+    border-top:40px solid var(--petrol);z-index:10;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));
+  }
+  .spin-btn{
+    background:var(--lime);color:var(--petrol-dark);border:none;cursor:pointer;
+    font-family:'Poppins';font-weight:700;font-size:18px;padding:16px 40px;border-radius:999px;
+    transition:.2s;display:block;margin:0 auto;
+  }
+  .spin-btn:hover:not(:disabled){background:var(--lime-dark);color:#fff;transform:translateY(-2px);box-shadow:0 12px 26px rgba(148,193,31,.4)}
+  .spin-btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .winner-announce{
+    background:linear-gradient(135deg,var(--petrol),var(--teal));color:#fff;
+    border-radius:var(--radius);padding:30px;text-align:center;display:none;margin-top:30px;
+  }
+  .winner-announce.show{display:block}
+  .winner-announce h2{font-size:clamp(24px,3vw,34px);margin-bottom:8px}
+  .winner-announce .name{font-size:clamp(32px,4vw,48px);font-weight:800;color:var(--lime);margin:10px 0}
+  .winner-announce p{font-size:16px;color:rgba(255,255,255,.85)}
+
+  .entries-list{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px;margin-top:30px;
+  }
+  .entries-list h3{font-size:18px;margin-bottom:14px;color:var(--petrol)}
+  .entries-list ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+  .entries-list li{padding:10px 14px;background:var(--teal-light);border-radius:8px;font-size:14px;color:var(--ink)}
+  .no-entries{color:var(--muted);font-style:italic;text-align:center;padding:20px}
+
+  .actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+  .btn{
+    border:none;cursor:pointer;font-family:'Poppins';font-weight:600;font-size:14px;
+    padding:12px 24px;border-radius:999px;transition:.2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-secondary{background:var(--teal-light);color:var(--petrol);border:1px solid var(--teal)}
+  .btn-secondary:hover{background:var(--teal);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <img src="Jabbla_UK_2021.jpg" alt="Jabbla UK" class="logo-img" />
+    <h1>HeyPad Prize Draw</h1>
+    <p>Communication Matters Conference 2026 · Spin to win!</p>
+  </div>
+
+  <div class="wheel-wrap">
+    <div class="wheel-container">
+      <canvas id="wheel" width="500" height="500" class="wheel-canvas"></canvas>
+      <div class="wheel-pointer"></div>
+    </div>
+    <button class="spin-btn" id="spinBtn">Spin the wheel!</button>
+  </div>
+
+  <div class="winner-announce" id="winnerBox">
+    <h2>🎉 Congratulations!</h2>
+    <div class="name" id="winnerName"></div>
+    <p>You've won the Jabbla HeyPad! Come to the stand to claim your prize.</p>
+  </div>
+
+  <div class="entries-list">
+    <h3>Competition Entries (<span id="entryCount">0</span>)</h3>
+    <ul id="entriesList"></ul>
+    <div class="no-entries" id="noEntries">No entries yet. Entries are loaded from the quiz page's localStorage.</div>
+  </div>
+
+  <div class="actions">
+    <a href="index.html" class="btn btn-secondary">← Back to quiz</a>
+    <button class="btn btn-secondary" id="resetBtn">Reset wheel</button>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const spinBtn = document.getElementById('spinBtn');
+  const winnerBox = document.getElementById('winnerBox');
+  const winnerName = document.getElementById('winnerName');
+  const entriesList = document.getElementById('entriesList');
+  const entryCount = document.getElementById('entryCount');
+  const noEntries = document.getElementById('noEntries');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let entries = [];
+  let currentRotation = 0;
+  let isSpinning = false;
+
+  const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
+
+  function loadEntries(){
+    try {
+      const stored = localStorage.getItem('heypad_entries');
+      if(stored){
+        const all = JSON.parse(stored);
+        entries = all.map(e => e.name);
+      }
+    } catch(err){
+      console.error('Failed to load entries:', err);
+    }
+    renderEntriesList();
+    drawWheel();
+  }
+
+  function renderEntriesList(){
+    entryCount.textContent = entries.length;
+    if(entries.length === 0){
+      noEntries.style.display = 'block';
+      entriesList.innerHTML = '';
+      spinBtn.disabled = true;
+    } else {
+      noEntries.style.display = 'none';
+      entriesList.innerHTML = entries.map(name => `<li>${name}</li>`).join('');
+      spinBtn.disabled = false;
+    }
+  }
+
+  function drawWheel(){
+    if(entries.length === 0){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#dbe6e8';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#5a727a';
+      ctx.font = '20px Poppins';
+      ctx.textAlign = 'center';
+      ctx.fillText('No entries', canvas.width/2, canvas.height/2);
+      return;
+    }
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = canvas.width / 2;
+    const sliceAngle = (2 * Math.PI) / entries.length;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(currentRotation);
+
+    entries.forEach((name, i) => {
+      const startAngle = i * sliceAngle;
+      const endAngle = startAngle + sliceAngle;
+      const color = COLORS[i % COLORS.length];
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, radius, startAngle, endAngle);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.rotate(startAngle + sliceAngle / 2);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Poppins';
+      ctx.fillText(name, radius - 20, 5);
+      ctx.restore();
+    });
+
+    ctx.restore();
+  }
+
+  function spin(){
+    if(isSpinning || entries.length === 0) return;
+    isSpinning = true;
+    spinBtn.disabled = true;
+    winnerBox.classList.remove('show');
+
+    const spins = 5 + Math.random() * 3;
+    const extraDegrees = Math.random() * 360;
+    const totalRotation = spins * 360 + extraDegrees;
+    const duration = 4000;
+    const start = Date.now();
+
+    function animate(){
+      const elapsed = Date.now() - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      currentRotation = (totalRotation * eased * Math.PI / 180);
+      drawWheel();
+
+      if(progress < 1){
+        requestAnimationFrame(animate);
+      } else {
+        isSpinning = false;
+        spinBtn.disabled = false;
+        announceWinner();
+      }
+    }
+    animate();
+  }
+
+  function announceWinner(){
+    const sliceAngle = (2 * Math.PI) / entries.length;
+    const normalizedRotation = currentRotation % (2 * Math.PI);
+    const pointerAngle = (2 * Math.PI - normalizedRotation + Math.PI / 2) % (2 * Math.PI);
+    const winnerIndex = Math.floor(pointerAngle / sliceAngle) % entries.length;
+    const winner = entries[winnerIndex];
+
+    winnerName.textContent = winner;
+    winnerBox.classList.add('show');
+  }
+
+  function reset(){
+    currentRotation = 0;
+    winnerBox.classList.remove('show');
+    drawWheel();
+  }
+
+  spinBtn.addEventListener('click', spin);
+  resetBtn.addEventListener('click', reset);
+
+  loadEntries();
+</script>
+</body>
+</html>

@@ -97,8 +97,8 @@
 
   /* Hero device card */
   .device-card{
-    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
-    border-radius:24px;padding:26px;backdrop-filter:blur(6px);box-shadow:var(--shadow);
+    background:transparent;border:none;
+    border-radius:24px;padding:26px;backdrop-filter:blur(6px);
   }
   .device-screen{
     background:linear-gradient(160deg,#0c7c8a,#0a5e6b);border-radius:16px;
@@ -113,6 +113,11 @@
   .device-keys i:nth-child(3n){background:rgba(148,193,31,.6)}
   .device-meta{margin-top:18px;display:flex;justify-content:space-between;font-size:13px;color:rgba(255,255,255,.8)}
   .device-meta b{display:block;font-family:'Poppins';color:#fff;font-size:15px}
+
+  /* HeyPad showcase */
+  .heypad-showcase{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+  .showcase-img img{width:100%;height:auto;display:block;border-radius:18px;box-shadow:0 18px 40px rgba(10,94,107,.18)}
+  .showcase-content{max-width:540px}
 
   /* ---------- Sections ---------- */
   section{padding:64px 22px}
@@ -237,6 +242,7 @@
     .hero-inner{grid-template-columns:1fr;gap:36px;padding:54px 22px 70px}
     .device-card{max-width:420px}
     .steps{grid-template-columns:1fr}
+    .heypad-showcase{grid-template-columns:1fr;gap:36px}
   }
   @media(max-width:520px){
     .nav-cta{display:none}
@@ -312,6 +318,26 @@
       <div>
         <h3>In-person attendees only</h3>
         <p>This competition is open <b>exclusively to people attending Communication Matters Conference 2026 live, in person</b>. You'll be asked to confirm your attendance when you enter, and winners will be verified at the event.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HEYPAD SHOWCASE -->
+<section style="background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="heypad-showcase">
+      <div class="showcase-img">
+        <img src="HeyPad-EN-side-2-1024x771.png" alt="Jabbla HeyPad communication device" />
+      </div>
+      <div class="showcase-content">
+        <span class="eyebrow" style="color:var(--teal);font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:13px">The Prize</span>
+        <h2 style="font-family:'Poppins';font-size:clamp(28px,3.5vw,42px);margin:10px 0 14px">Win a HeyPad — portable AAC on iPad</h2>
+        <p style="color:var(--muted);font-size:17px;line-height:1.7;margin-bottom:24px">HeyPad combines the power of an iPad with a robust communication case and the Allora text-to-speech app. Weighing just 1 kg, it's designed for everyday communication — at home, school, work, or out in the community. With touch, switch access, and eye tracking support, HeyPad adapts to your needs.</p>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <a href="https://www.jabbla.co.uk/devices/heypad/" target="_blank" rel="noopener" class="btn btn-primary" style="background:var(--petrol);color:#fff">Learn more about HeyPad →</a>
+          <a href="#quiz" class="btn" style="background:var(--teal-light);color:var(--petrol);border:1px solid var(--teal)">Enter the competition</a>
+        </div>
       </div>
     </div>
   </div>
