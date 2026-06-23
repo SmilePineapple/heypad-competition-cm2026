@@ -623,6 +623,19 @@
     if(!attending){ return fail('You must confirm you are attending Communication Matters 2026 in person to enter.'); }
     if(!consent){ return fail('Please tick the consent box so we can contact you if you win.'); }
 
+    // Check for duplicate email or name in existing entries
+    try {
+      const existing = JSON.parse(localStorage.getItem('heypad_entries')||'[]');
+      const emailLower = email.toLowerCase();
+      const nameLower = name.toLowerCase();
+      const duplicate = existing.find(e => 
+        e.email.toLowerCase() === emailLower || e.name.toLowerCase() === nameLower
+      );
+      if(duplicate){
+        return fail(`This ${duplicate.email.toLowerCase() === emailLower ? 'email address' : 'name'} has already been entered. Each person can only enter once.`);
+      }
+    } catch(err){ /* continue if localStorage fails */ }
+
     // Store entry locally (demo) — swap for a real endpoint/Buffer/CRM later.
     const entry = {
       name, email,
