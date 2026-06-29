@@ -266,23 +266,52 @@
     ctx.restore();
   }
 
+  let audioCtx = null;
+  function playTick(){
+    try {
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 800 + Math.random() * 400;
+      osc.type = 'square';
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.05);
+    } catch(e){ /* audio not available */ }
+  }
+
   function spin(){
     if(isSpinning || entries.length === 0) return;
     isSpinning = true;
     spinBtn.disabled = true;
     winnerBox.classList.remove('show');
 
-    const spins = 5 + Math.random() * 3;
+    const spins = 8 + Math.random() * 4;
     const extraDegrees = Math.random() * 360;
     const totalRotation = spins * 360 + extraDegrees;
-    const duration = 4000;
+    const duration = 8000;
     const start = Date.now();
+    let lastTickAngle = 0;
 
     function animate(){
       const elapsed = Date.now() - start;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const eased = 1 - Math.pow(1 - progress, 4);
       currentRotation = (totalRotation * eased * Math.PI / 180);
+
+      // Tick sound when passing a segment boundary
+      if(entries.length > 1){
+        const sliceAngle = (2 * Math.PI) / entries.length;
+        const currentAngle = currentRotation % (2 * Math.PI);
+        if(Math.floor(currentAngle / sliceAngle) !== Math.floor(lastTickAngle / sliceAngle)){
+          playTick();
+        }
+        lastTickAngle = currentAngle;
+      }
+
       drawWheel();
 
       if(progress < 1){
