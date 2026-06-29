@@ -43,17 +43,19 @@
     background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
     padding:40px 30px;box-shadow:var(--shadow);margin-bottom:30px;
   }
-  .wheel-container{position:relative;width:100%;max-width:500px;margin:0 auto 30px}
+  .wheel-container{position:relative;width:100%;max-width:500px;margin:30px auto 30px;padding-top:30px}
   .wheel-canvas{width:100%;height:auto;display:block;border-radius:50%;box-shadow:0 12px 30px rgba(10,94,107,.25)}
   .wheel-pointer{
-    position:absolute;top:-8px;left:50%;transform:translateX(-50%);
-    width:0;height:0;border-left:24px solid transparent;border-right:24px solid transparent;
-    border-top:48px solid var(--lime);z-index:10;
-    filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
+    position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;
+    border-top:42px solid var(--lime);z-index:10;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));
+    pointer-events:none;
   }
-  .wheel-pointer::after{
-    content:'';position:absolute;top:-52px;left:-6px;width:12px;height:12px;
+  .wheel-pointer::before{
+    content:'';position:absolute;top:-50px;left:-7px;width:14px;height:14px;
     border-radius:50%;background:var(--lime-dark);border:2px solid #fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
   }
   .spin-btn{
     background:var(--lime);color:var(--petrol-dark);border:none;cursor:pointer;
@@ -304,7 +306,7 @@
     function animate(){
       const elapsed = Date.now() - start;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 4);
+      const eased = 1 - Math.pow(1 - progress, 6);
       currentRotation = (totalRotation * eased * Math.PI / 180);
 
       // Tick sound when passing a segment boundary
