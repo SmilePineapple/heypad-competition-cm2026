@@ -150,6 +150,7 @@
   let entries = [];
   let currentRotation = 0;
   let isSpinning = false;
+  window._debug = { get rotation() { return currentRotation; }, get entries() { return entries; } };
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
