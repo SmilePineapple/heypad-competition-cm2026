@@ -150,7 +150,6 @@
   let entries = [];
   let currentRotation = 0;
   let isSpinning = false;
-  window._debug = { get rotation() { return currentRotation; }, get entries() { return entries; } };
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
@@ -355,7 +354,6 @@
     const winnerIndex = Math.floor(originalAngle / sliceAngle) % entries.length;
     const winner = entries[winnerIndex];
 
-    console.log(`Winner: index=${winnerIndex}, name=${winner}, rotation=${normalizedRotation.toFixed(3)}, originalAngle=${originalAngle.toFixed(3)}`);
     winnerName.textContent = winner;
     winnerBox.classList.add('show');
   }
