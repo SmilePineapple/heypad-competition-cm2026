@@ -346,31 +346,16 @@
     const normalizedRotation = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     const pointerAngle = 3 * Math.PI / 2; // top = 12 o'clock in canvas coords
 
-    // Iterate through all segments to find which one the pointer falls in
-    for(let i = 0; i < entries.length; i++){
-      let segStart = (i * sliceAngle + normalizedRotation) % (2 * Math.PI);
-      let segEnd = ((i + 1) * sliceAngle + normalizedRotation) % (2 * Math.PI);
+    // After rotating the wheel by normalizedRotation (clockwise),
+    // a segment originally at angle A is now at angle A + normalizedRotation.
+    // So the segment now at the pointer is the one where:
+    //   A + normalizedRotation = pointerAngle  =>  A = pointerAngle - normalizedRotation
+    const originalAngle = ((pointerAngle - normalizedRotation) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+    const winnerIndex = Math.floor(originalAngle / sliceAngle) % entries.length;
+    const winner = entries[winnerIndex];
 
-      if(segStart < segEnd){
-        if(pointerAngle >= segStart && pointerAngle < segEnd){
-          console.log(`Winner: index=${i}, name=${entries[i]}, rotation=${normalizedRotation.toFixed(3)}, segStart=${segStart.toFixed(3)}, segEnd=${segEnd.toFixed(3)}`);
-          winnerName.textContent = entries[i];
-          winnerBox.classList.add('show');
-          return;
-        }
-      } else {
-        // Segment wraps around 0
-        if(pointerAngle >= segStart || pointerAngle < segEnd){
-          console.log(`Winner: index=${i}, name=${entries[i]}, rotation=${normalizedRotation.toFixed(3)}, segStart=${segStart.toFixed(3)}, segEnd=${segEnd.toFixed(3)} (wrapped)`);
-          winnerName.textContent = entries[i];
-          winnerBox.classList.add('show');
-          return;
-        }
-      }
-    }
-
-    // Fallback
-    winnerName.textContent = entries[0];
+    console.log(`Winner: index=${winnerIndex}, name=${winner}, rotation=${normalizedRotation.toFixed(3)}, originalAngle=${originalAngle.toFixed(3)}`);
+    winnerName.textContent = winner;
     winnerBox.classList.add('show');
   }
 
