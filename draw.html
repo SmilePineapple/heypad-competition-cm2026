@@ -334,8 +334,11 @@
 
   function announceWinner(){
     const sliceAngle = (2 * Math.PI) / entries.length;
-    const normalizedRotation = currentRotation % (2 * Math.PI);
-    const pointerAngle = (2 * Math.PI - normalizedRotation + Math.PI / 2) % (2 * Math.PI);
+    const normalizedRotation = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    // Pointer is at top = -PI/2 (or equivalently 3*PI/2)
+    // Segments start at angle 0 and go clockwise (positive direction)
+    // After rotating by normalizedRotation, the segment at the top is:
+    const pointerAngle = (3 * Math.PI / 2 - normalizedRotation + 2 * Math.PI) % (2 * Math.PI);
     const winnerIndex = Math.floor(pointerAngle / sliceAngle) % entries.length;
     const winner = entries[winnerIndex];
 
