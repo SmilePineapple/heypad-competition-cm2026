@@ -46,9 +46,14 @@
   .wheel-container{position:relative;width:100%;max-width:500px;margin:0 auto 30px}
   .wheel-canvas{width:100%;height:auto;display:block;border-radius:50%;box-shadow:0 12px 30px rgba(10,94,107,.25)}
   .wheel-pointer{
-    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-    width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;
-    border-top:40px solid var(--petrol);z-index:10;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));
+    position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    width:0;height:0;border-left:24px solid transparent;border-right:24px solid transparent;
+    border-top:48px solid var(--lime);z-index:10;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
+  }
+  .wheel-pointer::after{
+    content:'';position:absolute;top:-52px;left:-6px;width:12px;height:12px;
+    border-radius:50%;background:var(--lime-dark);border:2px solid #fff;
   }
   .spin-btn{
     background:var(--lime);color:var(--petrol-dark);border:none;cursor:pointer;
@@ -174,7 +179,7 @@
     // Try loading from Google Sheet first (if configured)
     if(SHEET_CSV_URL){
       try {
-        const response = await fetch(SHEET_CSV_URL);
+        const response = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
         const csv = await response.text();
         const rows = csv.split('\n').slice(1).filter(r => r.trim()); // skip header
         entries = rows.map(row => {
@@ -292,7 +297,7 @@
     const spins = 8 + Math.random() * 4;
     const extraDegrees = Math.random() * 360;
     const totalRotation = spins * 360 + extraDegrees;
-    const duration = 8000;
+    const duration = 15000;
     const start = Date.now();
     let lastTickAngle = 0;
 
