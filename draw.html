@@ -258,19 +258,28 @@
       ctx.fillStyle = color;
       ctx.fill();
       ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 1;
       ctx.stroke();
 
       ctx.save();
       ctx.rotate(startAngle + sliceAngle / 2);
       ctx.textAlign = 'right';
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 16px Poppins';
+      ctx.font = 'bold 14px Poppins';
       ctx.fillText(name, radius - 20, 5);
       ctx.restore();
     });
 
     ctx.restore();
+
+    // Draw center hub
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.strokeStyle = 'var(--petrol)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
   }
 
   let audioCtx = null;
@@ -335,14 +344,33 @@
   function announceWinner(){
     const sliceAngle = (2 * Math.PI) / entries.length;
     const normalizedRotation = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    // Pointer is at top. Canvas rotates clockwise (positive = clockwise in canvas).
-    // Segment 0 starts at angle 0 (3 o'clock) and goes clockwise.
-    // After clockwise rotation, the segment now at the top (12 o'clock) is:
-    const pointerAngle = (Math.PI / 2 + normalizedRotation) % (2 * Math.PI);
-    const winnerIndex = Math.floor(pointerAngle / sliceAngle) % entries.length;
-    const winner = entries[winnerIndex];
+    const pointerAngle = 3 * Math.PI / 2; // top = 12 o'clock in canvas coords
 
-    winnerName.textContent = winner;
+    // Iterate through all segments to find which one the pointer falls in
+    for(let i = 0; i < entries.length; i++){
+      let segStart = (i * sliceAngle + normalizedRotation) % (2 * Math.PI);
+      let segEnd = ((i + 1) * sliceAngle + normalizedRotation) % (2 * Math.PI);
+
+      if(segStart < segEnd){
+        if(pointerAngle >= segStart && pointerAngle < segEnd){
+          console.log(`Winner: index=${i}, name=${entries[i]}, rotation=${normalizedRotation.toFixed(3)}, segStart=${segStart.toFixed(3)}, segEnd=${segEnd.toFixed(3)}`);
+          winnerName.textContent = entries[i];
+          winnerBox.classList.add('show');
+          return;
+        }
+      } else {
+        // Segment wraps around 0
+        if(pointerAngle >= segStart || pointerAngle < segEnd){
+          console.log(`Winner: index=${i}, name=${entries[i]}, rotation=${normalizedRotation.toFixed(3)}, segStart=${segStart.toFixed(3)}, segEnd=${segEnd.toFixed(3)} (wrapped)`);
+          winnerName.textContent = entries[i];
+          winnerBox.classList.add('show');
+          return;
+        }
+      }
+    }
+
+    // Fallback
+    winnerName.textContent = entries[0];
     winnerBox.classList.add('show');
   }
 
