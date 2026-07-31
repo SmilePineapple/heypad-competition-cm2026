@@ -429,10 +429,9 @@
     const start = Date.now();
     let lastTickAngle = 0;
     let lastTickTime = 0;
-    // Throttle ticks: with many entries, cap at ~12 per second to avoid continuous buzz
-    const tickIntervalMs = entries.length > 80 ? 80 : entries.length > 40 ? 50 : 30;
-    // Only tick every Nth segment boundary when there are many entries
-    const tickEveryNth = entries.length > 120 ? Math.ceil(entries.length / 30) : 1;
+    // Play a tick on every segment boundary, but enforce a minimum gap
+    // to prevent buzzing when the wheel is spinning fast with many entries
+    const tickIntervalMs = entries.length > 200 ? 30 : entries.length > 100 ? 25 : 15;
     let tickCount = 0;
 
     function animate(){
@@ -441,14 +440,13 @@
       const eased = 1 - Math.pow(1 - progress, 6);
       currentRotation = (totalRotation * eased * Math.PI / 180);
 
-      // Tick sound when passing a segment boundary (throttled)
+      // Tick sound on every segment boundary pass (with minimum time gap)
       if(entries.length > 1){
         const sliceAngle = (2 * Math.PI) / entries.length;
         const currentAngle = currentRotation % (2 * Math.PI);
         if(Math.floor(currentAngle / sliceAngle) !== Math.floor(lastTickAngle / sliceAngle)){
-          tickCount++;
           const now = Date.now();
-          if(tickCount % tickEveryNth === 0 && now - lastTickTime >= tickIntervalMs){
+          if(now - lastTickTime >= tickIntervalMs){
             playTick();
             lastTickTime = now;
           }
@@ -484,8 +482,10 @@
 
     winnerName.textContent = winner;
     winnerBox.classList.add('show');
-    launchConfetti();
-    setTimeout(() => winnerBox.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+    setTimeout(() => {
+      winnerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      launchConfetti();
+    }, 300);
   }
 
   function launchConfetti(){
