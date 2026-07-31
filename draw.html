@@ -4,6 +4,18 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>HeyPad Prize Draw | Jabbla UK @ CM 2026</title>
+<meta name="description" content="Watch the live HeyPad prize draw wheel spin at the Jabbla UK booth, Communication Matters Conference 2026. 15th September, 12:00 PM." />
+<link rel="icon" href="Jabbla_UK_2021.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="Jabbla_UK_2021.jpg" />
+<meta property="og:title" content="HeyPad Prize Draw | Jabbla UK @ CM 2026" />
+<meta property="og:description" content="Watch the live prize draw wheel spin at the Jabbla UK booth. 15th September 2026, 12:00 PM." />
+<meta property="og:image" content="https://smilepineapple.github.io/heypad-competition-cm2026/HeyPad-EN-side-3-no-background.png" />
+<meta property="og:url" content="https://smilepineapple.github.io/heypad-competition-cm2026/draw.html" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="HeyPad Prize Draw | Jabbla UK @ CM 2026" />
+<meta name="twitter:description" content="Watch the live prize draw wheel spin at the Jabbla UK booth. 15th September 2026, 12:00 PM." />
+<meta name="twitter:image" content="https://smilepineapple.github.io/heypad-competition-cm2026/HeyPad-EN-side-3-no-background.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -48,16 +60,10 @@
   .wheel-canvas{width:100%;height:auto;display:block;border-radius:50%;box-shadow:0 12px 30px rgba(10,94,107,.25)}
   .wheel-wrap.zoomed{overflow-x:auto;padding:30px 10px}
   .wheel-pointer{
-    position:absolute;top:0;left:50%;transform:translateX(-50%);
-    width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;
-    border-top:42px solid var(--lime);z-index:10;
+    position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    width:44px;height:56px;z-index:10;
     filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));
     pointer-events:none;
-  }
-  .wheel-pointer::before{
-    content:'';position:absolute;top:-50px;left:-7px;width:14px;height:14px;
-    border-radius:50%;background:var(--lime-dark);border:2px solid #fff;
-    box-shadow:0 2px 6px rgba(0,0,0,.3);
   }
   .spin-btn{
     background:var(--lime);color:var(--petrol-dark);border:none;cursor:pointer;
@@ -101,6 +107,15 @@
   }
   .btn-secondary{background:var(--teal-light);color:var(--petrol);border:1px solid var(--teal)}
   .btn-secondary:hover{background:var(--teal);color:#fff}
+
+  .draw-closed{
+    background:linear-gradient(135deg,var(--petrol),var(--teal));color:#fff;
+    border-radius:var(--radius);padding:30px;text-align:center;margin-bottom:30px;display:none
+  }
+  .draw-closed.show{display:block}
+  .draw-closed h2{font-size:clamp(22px,3vw,32px);margin-bottom:8px}
+  .draw-closed p{font-size:16px;color:rgba(255,255,255,.85)}
+  .draw-closed .countdown{font-family:'Poppins';font-weight:800;font-size:clamp(28px,4vw,42px);color:var(--lime);margin:12px 0}
 </style>
 </head>
 <body>
@@ -116,10 +131,22 @@
     </div>
   </div>
 
+  <div class="draw-closed" id="drawClosed">
+    <h2>🔒 Entries Closed</h2>
+    <p>The prize draw is about to begin!</p>
+    <div class="countdown" id="countdown"></div>
+    <p>Join us at the Jabbla UK booth to watch the live draw.</p>
+  </div>
+
   <div class="wheel-wrap">
     <div class="wheel-container">
       <canvas id="wheel" width="500" height="500" class="wheel-canvas"></canvas>
-      <div class="wheel-pointer"></div>
+      <div class="wheel-pointer">
+        <svg width="44" height="56" viewBox="0 0 44 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="12" r="10" fill="#7aa516" stroke="#fff" stroke-width="2"/>
+          <path d="M22 54 L6 18 Q22 10 38 18 Z" fill="#94c11f" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
     <div class="wheel-controls">
       <button class="spin-btn" id="spinBtn">Spin the wheel!</button>
@@ -163,13 +190,20 @@
   const zoomBtn = document.getElementById('zoomBtn');
   const wheelContainer = document.querySelector('.wheel-container');
   const wheelWrap = document.querySelector('.wheel-wrap');
+  const drawClosedEl = document.getElementById('drawClosed');
+  const countdownEl = document.getElementById('countdown');
 
   let entries = [];
   let currentRotation = 0;
   let isSpinning = false;
   let isZoomed = false;
+  let entriesClosed = false;
   const BASE_CANVAS_SIZE = 500;
   const ZOOM_CANVAS_SIZE = 1200;
+
+  // Draw time: 15th September 2026, 12:00 PM UK time (BST = UTC+1)
+  const DRAW_TIME = new Date('2026-09-15T11:00:00Z').getTime(); // 12:00 BST
+  const ENTRIES_CLOSE_TIME = DRAW_TIME - 30 * 60 * 1000; // 11:30 AM BST
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
@@ -220,11 +254,20 @@
         const response = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
         const csv = await response.text();
         const rows = csv.split('\n').slice(1).filter(r => r.trim()); // skip header
-        entries = rows.map(row => {
+        const rawNames = rows.map(row => {
           const cols = parseCSVRow(row);
           return cols[1]; // column 2 = Full name (index 1)
         }).filter(n => n);
-        console.log(`Loaded ${entries.length} entries from Google Sheet`);
+        // Deduplicate by name (case-insensitive) — first occurrence wins
+        const seen = new Set();
+        entries = rawNames.filter(name => {
+          const key = name.toLowerCase().trim();
+          if(seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        const dupesRemoved = rawNames.length - entries.length;
+        console.log(`Loaded ${entries.length} entries from Google Sheet${dupesRemoved > 0 ? ` (${dupesRemoved} duplicates removed)` : ''}`);
         renderEntriesList();
         drawWheel();
         return;
@@ -238,7 +281,14 @@
       const stored = localStorage.getItem('heypad_entries');
       if(stored){
         const all = JSON.parse(stored);
-        entries = all.map(e => e.name);
+        const rawNames = all.map(e => e.name);
+        const seen = new Set();
+        entries = rawNames.filter(name => {
+          const key = (name || '').toLowerCase().trim();
+          if(!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
       }
     } catch(err){
       console.error('Failed to load entries:', err);
@@ -355,7 +405,7 @@
   }
 
   function spin(){
-    if(isSpinning || entries.length === 0) return;
+    if(isSpinning || entries.length === 0 || entriesClosed) return;
     isSpinning = true;
     spinBtn.disabled = true;
     winnerBox.classList.remove('show');
@@ -442,10 +492,37 @@
     drawWheel();
   }
 
+  function checkDrawTime(){
+    const now = Date.now();
+    if(now >= ENTRIES_CLOSE_TIME){
+      entriesClosed = true;
+      drawClosedEl.classList.add('show');
+      spinBtn.disabled = true;
+      // Show countdown to the live draw
+      if(now < DRAW_TIME){
+        function updateCountdown(){
+          const remaining = DRAW_TIME - Date.now();
+          if(remaining <= 0){
+            countdownEl.textContent = 'The draw is starting now!';
+            return;
+          }
+          const mins = Math.floor(remaining / 60000);
+          const secs = Math.floor((remaining % 60000) / 1000);
+          countdownEl.textContent = `${mins}m ${secs}s`;
+          requestAnimationFrame(updateCountdown);
+        }
+        updateCountdown();
+      } else {
+        countdownEl.textContent = 'The draw has begun!';
+      }
+    }
+  }
+
   spinBtn.addEventListener('click', spin);
   resetBtn.addEventListener('click', reset);
   zoomBtn.addEventListener('click', toggleZoom);
 
+  checkDrawTime();
   loadEntries();
 </script>
 </body>

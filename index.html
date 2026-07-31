@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Win a HeyPad | Jabbla UK @ Communication Matters 2026</title>
 <meta name="description" content="Test your Jabbla knowledge at Communication Matters Conference 2026 for your chance to win a HeyPad AAC communication device. Open to in-person attendees only." />
+<link rel="icon" href="Jabbla_UK_2021.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="Jabbla_UK_2021.jpg" />
+<meta property="og:title" content="Win a HeyPad | Jabbla UK @ Communication Matters 2026" />
+<meta property="og:description" content="Test your Jabbla knowledge at CM 2026 for your chance to win a HeyPad AAC communication device. Open to in-person attendees only." />
+<meta property="og:image" content="https://smilepineapple.github.io/heypad-competition-cm2026/HeyPad-EN-side-3-no-background.png" />
+<meta property="og:url" content="https://smilepineapple.github.io/heypad-competition-cm2026/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Win a HeyPad | Jabbla UK @ Communication Matters 2026" />
+<meta name="twitter:description" content="Test your Jabbla knowledge at CM 2026 for your chance to win a HeyPad AAC communication device." />
+<meta name="twitter:image" content="https://smilepineapple.github.io/heypad-competition-cm2026/HeyPad-EN-side-3-no-background.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -180,6 +191,7 @@
   .option.correct .letter{background:var(--correct);color:#fff}
   .option.wrong{border-color:var(--wrong);background:rgba(226,87,76,.08)}
   .option.wrong .letter{background:var(--wrong);color:#fff}
+  .option:focus-visible{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(18,144,159,.25)}
   .option:disabled{cursor:default}
   .explain{
     margin-top:18px;padding:14px 16px;border-radius:12px;background:var(--teal-light);
@@ -380,6 +392,7 @@
         <div class="q-sub" id="qSub"></div>
         <div class="options" id="options"></div>
         <div class="explain" id="explain"></div>
+        <p style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center" id="kbHint">Tip: press <b>1–4</b> or <b>A–D</b> to answer, <b>Enter</b> for next</p>
       </div>
       <div class="quiz-foot">
         <button class="btn btn-primary next-btn" id="nextBtn">Next →</button>
@@ -586,6 +599,7 @@
     locked = true;
     const all = optionsEl.querySelectorAll('.option');
     all.forEach(b=>b.disabled=true);
+    if(!btn) btn = all[i];
     if(i === item.answer){
       btn.classList.add('correct');
       score++;
@@ -595,14 +609,45 @@
     }
     explainEl.classList.add('show');
     nextBtn.classList.add('show');
+    nextBtn.focus();
   }
 
   nextBtn.addEventListener('click',()=>{
     if(current < QUESTIONS.length-1){
       current++;
       render();
+      // Focus first option for keyboard users
+      const firstOpt = optionsEl.querySelector('.option');
+      if(firstOpt) firstOpt.focus();
     } else {
       showResult();
+    }
+  });
+
+  // Keyboard accessibility: 1-4 / A-D to select, Enter for next
+  document.addEventListener('keydown',(e)=>{
+    // Don't interfere if user is typing in a form field
+    const tag = (e.target.tagName || '').toLowerCase();
+    if(tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    const item = QUESTIONS[current];
+    if(!item) return;
+
+    // Number keys 1-4 or letter keys A-D to select an answer
+    if(!locked){
+      let idx = -1;
+      if(e.key >= '1' && e.key <= '4'){ idx = parseInt(e.key) - 1; }
+      else if(e.key >= 'a' && e.key <= 'd'){ idx = e.key.charCodeAt(0) - 97; }
+      else if(e.key >= 'A' && e.key <= 'D'){ idx = e.key.charCodeAt(0) - 65; }
+      if(idx >= 0 && idx < item.options.length){
+        e.preventDefault();
+        choose(idx, null, item);
+      }
+    }
+
+    // Enter or Right Arrow to advance to next question
+    if((e.key === 'Enter' || e.key === 'ArrowRight') && locked){
+      e.preventDefault();
+      if(nextBtn.classList.contains('show')) nextBtn.click();
     }
   });
 
