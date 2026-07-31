@@ -399,25 +399,42 @@
   }
 
   let audioCtx = null;
-  function playTick(){
-    if(!soundEnabled) return;
+  let tickBuffer = null;
+
+  function initAudio(){
+    if(audioCtx) return;
     try {
-      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // Pre-create a short click sound (white noise burst, 10ms)
+      const sampleRate = audioCtx.sampleRate;
+      const length = Math.floor(sampleRate * 0.01);
+      const buffer = audioCtx.createBuffer(1, length, sampleRate);
+      const data = buffer.getChannelData(0);
+      for(let i = 0; i < length; i++){
+        // Sharp click: full volume then quick decay
+        const decay = 1 - (i / length);
+        data[i] = (Math.random() * 2 - 1) * decay * 0.4;
+      }
+      tickBuffer = buffer;
+    } catch(e){ /* audio not available */ }
+  }
+
+  function playTick(){
+    if(!soundEnabled || !audioCtx || !tickBuffer) return;
+    try {
+      const src = audioCtx.createBufferSource();
       const gain = audioCtx.createGain();
-      osc.connect(gain);
+      src.buffer = tickBuffer;
+      src.connect(gain);
       gain.connect(audioCtx.destination);
-      osc.frequency.value = 800 + Math.random() * 400;
-      osc.type = 'square';
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + 0.05);
+      gain.gain.value = 0.5;
+      src.start();
     } catch(e){ /* audio not available */ }
   }
 
   function spin(){
     if(isSpinning || entries.length === 0 || entriesClosed) return;
+    initAudio();
     isSpinning = true;
     spinBtn.disabled = true;
     winnerBox.classList.remove('show');
@@ -435,17 +452,16 @@
       const eased = 1 - Math.pow(1 - progress, 6);
       currentRotation = (totalRotation * eased * Math.PI / 180);
 
-      // Tick sound: count how many segment boundaries were crossed since last frame
-      // and play a tick for each one (capped to avoid audio overload at very high speeds)
+      // Tick sound: count segment boundaries crossed since last frame
       if(entries.length > 1){
         const sliceAngle = (2 * Math.PI) / entries.length;
         const currentIndex = Math.floor(currentRotation / sliceAngle);
         const boundariesCrossed = currentIndex - lastTickIndex;
         if(boundariesCrossed > 0){
-          // Play up to 3 ticks per frame to keep audio responsive without overload
-          const ticksToPlay = Math.min(boundariesCrossed, 3);
+          // Play one tick per boundary crossed, up to 4 per frame
+          const ticksToPlay = Math.min(boundariesCrossed, 4);
           for(let t = 0; t < ticksToPlay; t++){
-            setTimeout(() => playTick(), t * 20);
+            playTick();
           }
           lastTickIndex = currentIndex;
         }
@@ -479,10 +495,8 @@
 
     winnerName.textContent = winner;
     winnerBox.classList.add('show');
-    setTimeout(() => {
-      winnerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      launchConfetti();
-    }, 300);
+    winnerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => launchConfetti(), 1000);
   }
 
   function launchConfetti(){
@@ -557,6 +571,7 @@
   zoomBtn.addEventListener('click', toggleZoom);
   respinBtn.addEventListener('click', () => { reset(); spin(); });
   soundBtn.addEventListener('click', () => {
+    initAudio();
     soundEnabled = !soundEnabled;
     soundBtn.textContent = soundEnabled ? '🔊 Sound on' : '🔇 Sound off';
     soundBtn.classList.toggle('muted', !soundEnabled);
