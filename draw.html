@@ -150,7 +150,6 @@
   let entries = [];
   let currentRotation = 0;
   let isSpinning = false;
-  window._debug = { get rotation() { return currentRotation; }, get entries() { return entries; } };
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
@@ -236,7 +235,13 @@
       spinBtn.disabled = true;
     } else {
       noEntries.style.display = 'none';
-      entriesList.innerHTML = entries.map(name => `<li>${name}</li>`).join('');
+      const maxShow = 100;
+      const shown = entries.slice(0, maxShow);
+      let html = shown.map(name => `<li>${name}</li>`).join('');
+      if(entries.length > maxShow){
+        html += `<li style="grid-column:1/-1;text-align:center;font-style:italic;background:transparent;color:var(--muted)">… and ${entries.length - maxShow} more entries</li>`;
+      }
+      entriesList.innerHTML = html;
       spinBtn.disabled = false;
     }
   }
@@ -263,6 +268,14 @@
     ctx.translate(centerX, centerY);
     ctx.rotate(currentRotation);
 
+    // Adaptive text: only draw names when segments are wide enough
+    const arcLengthAtText = (radius - 20) * sliceAngle;
+    let fontSize = 14;
+    let drawText = true;
+    if(entries.length > 120){ drawText = false; }
+    else if(entries.length > 60){ fontSize = 10; }
+    else if(entries.length > 40){ fontSize = 12; }
+
     entries.forEach((name, i) => {
       const startAngle = i * sliceAngle;
       const endAngle = startAngle + sliceAngle;
@@ -278,13 +291,15 @@
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      ctx.save();
-      ctx.rotate(startAngle + sliceAngle / 2);
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 14px Poppins';
-      ctx.fillText(name, radius - 20, 5);
-      ctx.restore();
+      if(drawText){
+        ctx.save();
+        ctx.rotate(startAngle + sliceAngle / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${fontSize}px Poppins`;
+        ctx.fillText(name, radius - 20, 5);
+        ctx.restore();
+      }
     });
 
     ctx.restore();
@@ -328,6 +343,12 @@
     const duration = 15000;
     const start = Date.now();
     let lastTickAngle = 0;
+    let lastTickTime = 0;
+    // Throttle ticks: with many entries, cap at ~12 per second to avoid continuous buzz
+    const tickIntervalMs = entries.length > 80 ? 80 : entries.length > 40 ? 50 : 30;
+    // Only tick every Nth segment boundary when there are many entries
+    const tickEveryNth = entries.length > 120 ? Math.ceil(entries.length / 30) : 1;
+    let tickCount = 0;
 
     function animate(){
       const elapsed = Date.now() - start;
@@ -335,12 +356,17 @@
       const eased = 1 - Math.pow(1 - progress, 6);
       currentRotation = (totalRotation * eased * Math.PI / 180);
 
-      // Tick sound when passing a segment boundary
+      // Tick sound when passing a segment boundary (throttled)
       if(entries.length > 1){
         const sliceAngle = (2 * Math.PI) / entries.length;
         const currentAngle = currentRotation % (2 * Math.PI);
         if(Math.floor(currentAngle / sliceAngle) !== Math.floor(lastTickAngle / sliceAngle)){
-          playTick();
+          tickCount++;
+          const now = Date.now();
+          if(tickCount % tickEveryNth === 0 && now - lastTickTime >= tickIntervalMs){
+            playTick();
+            lastTickTime = now;
+          }
         }
         lastTickAngle = currentAngle;
       }
