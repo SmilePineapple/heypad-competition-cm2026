@@ -43,8 +43,10 @@
     background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
     padding:40px 30px;box-shadow:var(--shadow);margin-bottom:30px;
   }
-  .wheel-container{position:relative;width:100%;max-width:500px;margin:30px auto 30px;padding-top:30px}
+  .wheel-container{position:relative;width:100%;max-width:500px;margin:30px auto 30px;padding-top:30px;transition:max-width .4s ease}
+  .wheel-container.zoomed{max-width:900px;padding-top:40px}
   .wheel-canvas{width:100%;height:auto;display:block;border-radius:50%;box-shadow:0 12px 30px rgba(10,94,107,.25)}
+  .wheel-wrap.zoomed{overflow-x:auto;padding:30px 10px}
   .wheel-pointer{
     position:absolute;top:0;left:50%;transform:translateX(-50%);
     width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;
@@ -64,6 +66,15 @@
   }
   .spin-btn:hover:not(:disabled){background:var(--lime-dark);color:#fff;transform:translateY(-2px);box-shadow:0 12px 26px rgba(148,193,31,.4)}
   .spin-btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .wheel-controls{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:20px}
+  .zoom-btn{
+    background:var(--teal-light);color:var(--petrol);border:1px solid var(--teal);cursor:pointer;
+    font-family:'Poppins';font-weight:600;font-size:14px;padding:10px 20px;border-radius:999px;
+    transition:.2s;display:inline-flex;align-items:center;gap:6px
+  }
+  .zoom-btn:hover{background:var(--teal);color:#fff}
+  .zoom-btn.active{background:var(--petrol);color:#fff;border-color:var(--petrol)}
 
   .winner-announce{
     background:linear-gradient(135deg,var(--petrol),var(--teal));color:#fff;
@@ -110,7 +121,10 @@
       <canvas id="wheel" width="500" height="500" class="wheel-canvas"></canvas>
       <div class="wheel-pointer"></div>
     </div>
-    <button class="spin-btn" id="spinBtn">Spin the wheel!</button>
+    <div class="wheel-controls">
+      <button class="spin-btn" id="spinBtn">Spin the wheel!</button>
+      <button class="zoom-btn" id="zoomBtn">🔍 Zoom in</button>
+    </div>
   </div>
 
   <div class="winner-announce" id="winnerBox">
@@ -146,10 +160,16 @@
   const entryCount = document.getElementById('entryCount');
   const noEntries = document.getElementById('noEntries');
   const resetBtn = document.getElementById('resetBtn');
+  const zoomBtn = document.getElementById('zoomBtn');
+  const wheelContainer = document.querySelector('.wheel-container');
+  const wheelWrap = document.querySelector('.wheel-wrap');
 
   let entries = [];
   let currentRotation = 0;
   let isSpinning = false;
+  let isZoomed = false;
+  const BASE_CANVAS_SIZE = 500;
+  const ZOOM_CANVAS_SIZE = 1200;
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
@@ -269,10 +289,12 @@
     ctx.rotate(currentRotation);
 
     // Adaptive text: only draw names when segments are wide enough
-    const arcLengthAtText = (radius - 20) * sliceAngle;
+    // In zoom mode, always draw text with larger fonts since canvas is higher resolution
     let fontSize = 14;
     let drawText = true;
-    if(entries.length > 120){ drawText = false; }
+    if(isZoomed){
+      fontSize = entries.length > 120 ? 14 : entries.length > 60 ? 20 : entries.length > 40 ? 24 : 28;
+    } else if(entries.length > 120){ drawText = false; }
     else if(entries.length > 60){ fontSize = 10; }
     else if(entries.length > 40){ fontSize = 12; }
 
@@ -305,12 +327,13 @@
     ctx.restore();
 
     // Draw center hub
+    const hubRadius = isZoomed ? 60 : 30;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, hubRadius, 0, 2 * Math.PI);
     ctx.fillStyle = '#fff';
     ctx.fill();
-    ctx.strokeStyle = 'var(--petrol)';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#0a5e6b';
+    ctx.lineWidth = isZoomed ? 5 : 3;
     ctx.stroke();
   }
 
@@ -407,8 +430,21 @@
     drawWheel();
   }
 
+  function toggleZoom(){
+    isZoomed = !isZoomed;
+    const size = isZoomed ? ZOOM_CANVAS_SIZE : BASE_CANVAS_SIZE;
+    canvas.width = size;
+    canvas.height = size;
+    wheelContainer.classList.toggle('zoomed', isZoomed);
+    wheelWrap.classList.toggle('zoomed', isZoomed);
+    zoomBtn.textContent = isZoomed ? '🔍 Zoom out' : '🔍 Zoom in';
+    zoomBtn.classList.toggle('active', isZoomed);
+    drawWheel();
+  }
+
   spinBtn.addEventListener('click', spin);
   resetBtn.addEventListener('click', reset);
+  zoomBtn.addEventListener('click', toggleZoom);
 
   loadEntries();
 </script>
