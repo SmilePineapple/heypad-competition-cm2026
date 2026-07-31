@@ -150,6 +150,7 @@
   let entries = [];
   let currentRotation = 0;
   let isSpinning = false;
+  window._debug = { get rotation() { return currentRotation; }, get entries() { return entries; } };
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
@@ -178,6 +179,22 @@
   }
 
   async function loadEntries(){
+    // Test mode: ?test=N generates N dummy entries
+    const testParam = new URLSearchParams(window.location.search).get('test');
+    if(testParam){
+      const n = parseInt(testParam);
+      const firstNames = ['James','Sarah','Michael','Emma','David','Laura','Chris','Rachel','Tom','Lisa','Dan','Holly','Mark','Nina','Paul','Anna','Steve','Kate','Mike','Ella','Alex','Megan','Rob','Isla','Sam','Tara','Ben','Zoe','Oliver','Phoebe','Harry','Grace','Charlie','Daisy','Oscar','Florence','Leo','Lily','Max','Ruby','Archie','Evie','Theo','Maya','Hugo','Sophie','Rory','Ivy','Finlay','Rosie'];
+      const lastNames = ['Smith','Jones','Williams','Taylor','Brown','Davies','Wilson','Evans','Thomas','Roberts','Johnson','Walker','Wright','Robinson','Thompson','White','Hughes','Edwards','Green','Hall','Wood','Harris','Clark','Lewis','Young','Turner','Carter','Phillips','Mitchell','Murphy','Cooper','Ward','Watson','Morgan','Stewart','Reed','Bennett','Russell','Griffiths','Cox','Kelly','Howard','Shaw','Powell','Sullivan','Webb','Price','Baker','Foster','Reeves'];
+      entries = [];
+      for(let i = 0; i < n; i++){
+        entries.push(`${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]} ${i+1}`);
+      }
+      console.log(`TEST MODE: Generated ${entries.length} dummy entries`);
+      renderEntriesList();
+      drawWheel();
+      return;
+    }
+
     // Try loading from Google Sheet first (if configured)
     if(SHEET_CSV_URL){
       try {
