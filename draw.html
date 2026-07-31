@@ -207,10 +207,9 @@
 
   const COLORS = ['#0a5e6b','#12909f','#94c11f','#0c7c8a','#16323a','#5a727a','#7aa516','#063e47'];
 
-  // --- Google Sheet auto-sync config ---
-  // To enable: publish your Google Sheet to the web as CSV, then paste the URL below.
-  // Instructions: Open Sheet → File → Share → Publish to web → select "Entire Document" + "CSV" → Publish → copy link.
-  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2Ik-UMLrhmPgDBswEx1-lyRXoZ0x0Jzv4k7cXheOXhuv2wUwP9-cYcV5T7rgr09mwtnKaSWHFwaTY/pub?output=csv';
+  // --- Google Sheet config ---
+  // Live entries are loaded from the linked Google Sheet (CSV export).
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1NipEm-ZxlgMpQRoVjbKLaSb_u9PsAKXv7CLbYXJHhwU/export?format=csv&gid=195559928';
 
   function parseCSVRow(row){
     const cols = [];
@@ -232,23 +231,7 @@
   }
 
   async function loadEntries(){
-    // Test mode: ?test=N generates N dummy entries
-    const testParam = new URLSearchParams(window.location.search).get('test');
-    if(testParam){
-      const n = parseInt(testParam);
-      const firstNames = ['James','Sarah','Michael','Emma','David','Laura','Chris','Rachel','Tom','Lisa','Dan','Holly','Mark','Nina','Paul','Anna','Steve','Kate','Mike','Ella','Alex','Megan','Rob','Isla','Sam','Tara','Ben','Zoe','Oliver','Phoebe','Harry','Grace','Charlie','Daisy','Oscar','Florence','Leo','Lily','Max','Ruby','Archie','Evie','Theo','Maya','Hugo','Sophie','Rory','Ivy','Finlay','Rosie'];
-      const lastNames = ['Smith','Jones','Williams','Taylor','Brown','Davies','Wilson','Evans','Thomas','Roberts','Johnson','Walker','Wright','Robinson','Thompson','White','Hughes','Edwards','Green','Hall','Wood','Harris','Clark','Lewis','Young','Turner','Carter','Phillips','Mitchell','Murphy','Cooper','Ward','Watson','Morgan','Stewart','Reed','Bennett','Russell','Griffiths','Cox','Kelly','Howard','Shaw','Powell','Sullivan','Webb','Price','Baker','Foster','Reeves'];
-      entries = [];
-      for(let i = 0; i < n; i++){
-        entries.push(`${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]} ${i+1}`);
-      }
-      console.log(`TEST MODE: Generated ${entries.length} dummy entries`);
-      renderEntriesList();
-      drawWheel();
-      return;
-    }
-
-    // Try loading from Google Sheet first (if configured)
+    // Try loading from Google Sheet
     if(SHEET_CSV_URL){
       try {
         const response = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
