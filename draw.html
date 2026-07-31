@@ -162,6 +162,11 @@
   </div>
 
   <div class="wheel-wrap">
+    <div class="wheel-controls" style="margin-top:0;margin-bottom:20px">
+      <button class="spin-btn" id="spinBtn">Spin the wheel!</button>
+      <button class="zoom-btn" id="zoomBtn">🔍 Zoom in</button>
+      <button class="sound-btn" id="soundBtn">🔊 Sound on</button>
+    </div>
     <div class="wheel-container">
       <canvas id="wheel" width="500" height="500" class="wheel-canvas"></canvas>
       <div class="wheel-pointer">
@@ -170,11 +175,6 @@
           <path d="M22 54 L6 18 Q22 10 38 18 Z" fill="#94c11f" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
         </svg>
       </div>
-    </div>
-    <div class="wheel-controls">
-      <button class="spin-btn" id="spinBtn">Spin the wheel!</button>
-      <button class="zoom-btn" id="zoomBtn">🔍 Zoom in</button>
-      <button class="sound-btn" id="soundBtn">🔊 Sound on</button>
     </div>
   </div>
 
@@ -485,6 +485,7 @@
     winnerName.textContent = winner;
     winnerBox.classList.add('show');
     launchConfetti();
+    setTimeout(() => winnerBox.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
   }
 
   function launchConfetti(){
@@ -505,8 +506,8 @@
       c.animate([
         { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
         { transform: `translate(${dx}px,${dy}px) rotate(${rot}deg)`, opacity: 0 }
-      ], { duration: 1200 + Math.random() * 800, easing: 'cubic-bezier(.2,.6,.4,1)' });
-      setTimeout(() => c.remove(), 2200);
+      ], { duration: 2500 + Math.random() * 1500, easing: 'cubic-bezier(.15,.6,.4,1)' });
+      setTimeout(() => c.remove(), 4500);
     }
   }
 
