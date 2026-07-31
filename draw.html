@@ -427,12 +427,7 @@
     const totalRotation = spins * 360 + extraDegrees;
     const duration = 15000;
     const start = Date.now();
-    let lastTickAngle = 0;
-    let lastTickTime = 0;
-    // Play a tick on every segment boundary, but enforce a minimum gap
-    // to prevent buzzing when the wheel is spinning fast with many entries
-    const tickIntervalMs = entries.length > 200 ? 30 : entries.length > 100 ? 25 : 15;
-    let tickCount = 0;
+    let lastTickIndex = 0;
 
     function animate(){
       const elapsed = Date.now() - start;
@@ -440,18 +435,20 @@
       const eased = 1 - Math.pow(1 - progress, 6);
       currentRotation = (totalRotation * eased * Math.PI / 180);
 
-      // Tick sound on every segment boundary pass (with minimum time gap)
+      // Tick sound: count how many segment boundaries were crossed since last frame
+      // and play a tick for each one (capped to avoid audio overload at very high speeds)
       if(entries.length > 1){
         const sliceAngle = (2 * Math.PI) / entries.length;
-        const currentAngle = currentRotation % (2 * Math.PI);
-        if(Math.floor(currentAngle / sliceAngle) !== Math.floor(lastTickAngle / sliceAngle)){
-          const now = Date.now();
-          if(now - lastTickTime >= tickIntervalMs){
-            playTick();
-            lastTickTime = now;
+        const currentIndex = Math.floor(currentRotation / sliceAngle);
+        const boundariesCrossed = currentIndex - lastTickIndex;
+        if(boundariesCrossed > 0){
+          // Play up to 3 ticks per frame to keep audio responsive without overload
+          const ticksToPlay = Math.min(boundariesCrossed, 3);
+          for(let t = 0; t < ticksToPlay; t++){
+            setTimeout(() => playTick(), t * 20);
           }
+          lastTickIndex = currentIndex;
         }
-        lastTickAngle = currentAngle;
       }
 
       drawWheel();
