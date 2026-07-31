@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>HeyPad Prize Draw | Jabbla UK @ CM 2026</title>
 <meta name="description" content="Watch the live HeyPad prize draw wheel spin at the Jabbla UK booth, Communication Matters Conference 2026. 15th September, 12:00 PM." />
-<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
-<link rel="icon" href="favicon-192.png" type="image/png" sizes="192x192" />
-<link rel="apple-touch-icon" href="favicon-180.png" />
+<link rel="icon" href="favicon-32.png?v=2" type="image/png" sizes="32x32" />
+<link rel="icon" href="favicon-192.png?v=2" type="image/png" sizes="192x192" />
+<link rel="apple-touch-icon" href="favicon-180.png?v=2" />
 <meta property="og:title" content="HeyPad Prize Draw | Jabbla UK @ CM 2026" />
 <meta property="og:description" content="Watch the live prize draw wheel spin at the Jabbla UK booth. 15th September 2026, 12:00 PM." />
 <meta property="og:image" content="https://smilepineapple.github.io/heypad-competition-cm2026/HeyPad-EN-side-3-no-background.png" />
@@ -83,14 +83,36 @@
   .zoom-btn:hover{background:var(--teal);color:#fff}
   .zoom-btn.active{background:var(--petrol);color:#fff;border-color:var(--petrol)}
 
+  .sound-btn{
+    background:var(--teal-light);color:var(--petrol);border:1px solid var(--teal);cursor:pointer;
+    font-family:'Poppins';font-weight:600;font-size:14px;padding:10px 16px;border-radius:999px;
+    transition:.2s;display:inline-flex;align-items:center;gap:6px
+  }
+  .sound-btn:hover{background:var(--teal);color:#fff}
+  .sound-btn.muted{opacity:.6}
+
+  .entry-badge{
+    display:inline-flex;align-items:center;gap:8px;background:var(--lime);color:var(--petrol-dark);
+    font-family:'Poppins';font-weight:700;font-size:14px;padding:8px 18px;border-radius:999px;
+    margin-bottom:10px
+  }
+
   .winner-announce{
     background:linear-gradient(135deg,var(--petrol),var(--teal));color:#fff;
     border-radius:var(--radius);padding:30px;text-align:center;display:none;margin-top:30px;
+    position:relative;overflow:hidden
   }
   .winner-announce.show{display:block}
   .winner-announce h2{font-size:clamp(24px,3vw,34px);margin-bottom:8px}
   .winner-announce .name{font-size:clamp(32px,4vw,48px);font-weight:800;color:var(--lime);margin:10px 0}
   .winner-announce p{font-size:16px;color:rgba(255,255,255,.85)}
+  .winner-announce .respin-btn{
+    margin-top:16px;background:var(--lime);color:var(--petrol-dark);border:none;cursor:pointer;
+    font-family:'Poppins';font-weight:700;font-size:15px;padding:12px 28px;border-radius:999px;transition:.2s
+  }
+  .winner-announce .respin-btn:hover{background:var(--lime-dark);color:#fff}
+
+  .confetti{position:absolute;width:10px;height:10px;pointer-events:none;opacity:0}
 
   .entries-list{
     background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
@@ -152,6 +174,7 @@
     <div class="wheel-controls">
       <button class="spin-btn" id="spinBtn">Spin the wheel!</button>
       <button class="zoom-btn" id="zoomBtn">🔍 Zoom in</button>
+      <button class="sound-btn" id="soundBtn">🔊 Sound on</button>
     </div>
   </div>
 
@@ -159,6 +182,7 @@
     <h2>🎉 Congratulations!</h2>
     <div class="name" id="winnerName"></div>
     <p>You've won the Jabbla HeyPad! Come to the stand to claim your prize.</p>
+    <button class="respin-btn" id="respinBtn">🔄 Spin again</button>
   </div>
 
   <div class="entries-list">
@@ -193,12 +217,15 @@
   const wheelWrap = document.querySelector('.wheel-wrap');
   const drawClosedEl = document.getElementById('drawClosed');
   const countdownEl = document.getElementById('countdown');
+  const soundBtn = document.getElementById('soundBtn');
+  const respinBtn = document.getElementById('respinBtn');
 
   let entries = [];
   let currentRotation = 0;
   let isSpinning = false;
   let isZoomed = false;
   let entriesClosed = false;
+  let soundEnabled = true;
   const BASE_CANVAS_SIZE = 500;
   const ZOOM_CANVAS_SIZE = 1200;
 
@@ -373,6 +400,7 @@
 
   let audioCtx = null;
   function playTick(){
+    if(!soundEnabled) return;
     try {
       if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = audioCtx.createOscillator();
@@ -456,6 +484,30 @@
 
     winnerName.textContent = winner;
     winnerBox.classList.add('show');
+    launchConfetti();
+  }
+
+  function launchConfetti(){
+    const colors = ['#94c11f','#12909f','#0a5e6b','#7aa516','#0c7c8a'];
+    for(let i = 0; i < 60; i++){
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.background = colors[i % colors.length];
+      c.style.left = Math.random() * 100 + '%';
+      c.style.top = '0';
+      c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      c.style.width = (6 + Math.random() * 8) + 'px';
+      c.style.height = (6 + Math.random() * 8) + 'px';
+      winnerBox.appendChild(c);
+      const dx = (Math.random() - 0.5) * 300;
+      const dy = 200 + Math.random() * 200;
+      const rot = Math.random() * 720;
+      c.animate([
+        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${dx}px,${dy}px) rotate(${rot}deg)`, opacity: 0 }
+      ], { duration: 1200 + Math.random() * 800, easing: 'cubic-bezier(.2,.6,.4,1)' });
+      setTimeout(() => c.remove(), 2200);
+    }
   }
 
   function reset(){
@@ -505,6 +557,12 @@
   spinBtn.addEventListener('click', spin);
   resetBtn.addEventListener('click', reset);
   zoomBtn.addEventListener('click', toggleZoom);
+  respinBtn.addEventListener('click', () => { reset(); spin(); });
+  soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊 Sound on' : '🔇 Sound off';
+    soundBtn.classList.toggle('muted', !soundEnabled);
+  });
 
   checkDrawTime();
   loadEntries();
