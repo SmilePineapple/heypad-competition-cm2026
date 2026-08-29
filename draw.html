@@ -11,7 +11,13 @@
 <meta property="og:title" content="HeyPad Prize Draw | Jabbla UK @ CM 2026" />
 <meta property="og:description" content="Watch the live prize draw wheel spin at the Jabbla UK booth. 15th September 2026, 1:00 PM." />
 <meta property="og:image" content="https://smilepineapple.github.io/heypad-competition-cm2026/HeyPad-EN-side-3-no-background.png" />
-<meta property="og:url" content="https://smilepineapple.github.io/heypad-competition-cm2026/draw.html" />
+<meta property="og:url" content="https://www.jabbla.co.uk/heypad-competition/draw.html" />
+<script>
+  if(location.hostname === 'smilepineapple.github.io' && location.pathname.startsWith('/heypad-competition-cm2026')){
+    const target = 'https://www.jabbla.co.uk' + location.pathname.replace('/heypad-competition-cm2026','/heypad-competition') + location.search + location.hash;
+    location.replace(target);
+  }
+</script>
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="HeyPad Prize Draw | Jabbla UK @ CM 2026" />

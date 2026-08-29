@@ -11,7 +11,14 @@
 <meta property="og:title" content="Win a HeyPad | Jabbla UK @ Communication Matters 2026" />
 <meta property="og:description" content="Test your Jabbla knowledge at CM 2026 for your chance to win a HeyPad AAC communication device. Open to in-person attendees only." />
 <meta property="og:image" content="https://smilepineapple.github.io/heypad-competition-cm2026/HeyPad-EN-side-3-no-background.png" />
-<meta property="og:url" content="https://smilepineapple.github.io/heypad-competition-cm2026/" />
+<meta property="og:url" content="https://www.jabbla.co.uk/heypad-competition/" />
+<script>
+  // Redirect any old GitHub Pages QR/bookmark traffic to the official Jabbla site
+  if(location.hostname === 'smilepineapple.github.io' && location.pathname.startsWith('/heypad-competition-cm2026')){
+    const target = 'https://www.jabbla.co.uk' + location.pathname.replace('/heypad-competition-cm2026','/heypad-competition') + location.search + location.hash;
+    location.replace(target);
+  }
+</script>
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Win a HeyPad | Jabbla UK @ Communication Matters 2026" />
