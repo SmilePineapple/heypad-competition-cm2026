@@ -448,14 +448,14 @@
         </div>
         <div class="form-err" id="formErr"></div>
         <button type="submit" class="btn btn-primary">Submit my entry</button>
-        <p class="fineprint">One entry per person. Open to in-person attendees of Communication Matters Conference 2026 only. <a href="terms.html" target="_blank" rel="noopener">Full terms &amp; conditions</a>.</p>
+        <p class="fineprint">You earn one entry for every correct answer (up to 5). Open to in-person attendees of Communication Matters Conference 2026 only. <a href="terms.html" target="_blank" rel="noopener">Full terms &amp; conditions</a>.</p>
       </form>
 
       <!-- Confirmation -->
       <div class="confirm" id="confirm">
         <div class="tick">✓</div>
         <h3>You're entered!</h3>
-        <p class="msg">Thanks <span id="winnerName">there</span> — your entry is in. Come and chat to the Jabbla UK team at the stand, and good luck! 🎉</p>
+        <p class="msg">Thanks <span id="winnerName">there</span> — your <b id="entryCount">entries</b> are in. Come and chat to the Jabbla UK team at the stand, and good luck! 🎉</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:18px">
           <a class="btn btn-ghost" href="#top" style="color:var(--petrol);border-color:var(--teal)">Back to top</a>
         </div>
@@ -674,13 +674,13 @@
     const msg = document.getElementById('resultMsg');
     if(score === QUESTIONS.length){
       title.textContent = 'Jabbla expert! 🌟';
-      msg.textContent = 'A perfect score — you really know your AAC. Enter below for your chance to win the HeyPad.';
-    } else if(score >= 3){
-      title.textContent = 'Great effort!';
-      msg.textContent = 'Nicely done. Every entry has an equal chance in the draw — pop your details in below.';
+      msg.textContent = `A perfect score — that\'s ${score} entries into the draw! Enter your details below for your chance to win the HeyPad.`;
+    } else if(score >= 1){
+      title.textContent = `Great effort — ${score} entries!`;
+      msg.textContent = `You scored ${score} out of ${QUESTIONS.length}, so you\'ve earned ${score} entries into the draw. Pop your details in below.`;
     } else {
       title.textContent = 'Thanks for playing!';
-      msg.textContent = 'Now you know a little more about Jabbla. All entries go into the same draw — good luck!';
+      msg.textContent = 'You didn\'t score this time, but you can still enter once with your details below. Good luck!';
     }
   }
 
@@ -735,6 +735,8 @@
 
     form.style.display = 'none';
     document.getElementById('winnerName').textContent = name.split(' ')[0];
+    const entriesText = score === 1 ? '1 entry' : `${score} entries`;
+    document.getElementById('entryCount').textContent = entriesText;
     document.getElementById('confirm').classList.add('show');
   });
 

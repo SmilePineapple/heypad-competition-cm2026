@@ -270,21 +270,29 @@
       try {
         const response = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
         const csv = await response.text();
-        const rows = csv.split('\n').slice(1).filter(r => r.trim()); // skip header
-        const rawNames = rows.map(row => {
+        const allRows = csv.split('\n').filter(r => r.trim());
+        if(allRows.length === 0) throw new Error('Empty CSV');
+        const header = parseCSVRow(allRows[0]);
+        const nameCol = header.findIndex(h => /full\s*name|name/i.test(h));
+        const scoreCol = header.findIndex(h => /score|correct|entries/i.test(h));
+        const nameIdx = nameCol >= 0 ? nameCol : 1;
+        const scoreIdx = scoreCol >= 0 ? scoreCol : -1;
+        const dataRows = allRows.slice(1);
+        const participantCounts = new Map();
+        dataRows.forEach(row => {
           const cols = parseCSVRow(row);
-          return cols[1]; // column 2 = Full name (index 1)
-        }).filter(n => n);
-        // Deduplicate by name (case-insensitive) — first occurrence wins
-        const seen = new Set();
-        entries = rawNames.filter(name => {
+          const name = cols[nameIdx];
+          if(!name) return;
+          const rawScore = scoreIdx >= 0 ? parseInt(cols[scoreIdx], 10) : 1;
+          const count = Math.max(1, isNaN(rawScore) ? 1 : rawScore);
           const key = name.toLowerCase().trim();
-          if(seen.has(key)) return false;
-          seen.add(key);
-          return true;
+          participantCounts.set(key, { name, count: (participantCounts.get(key)?.count || 0) + count });
         });
-        const dupesRemoved = rawNames.length - entries.length;
-        console.log(`Loaded ${entries.length} entries from Google Sheet${dupesRemoved > 0 ? ` (${dupesRemoved} duplicates removed)` : ''}`);
+        entries = [];
+        participantCounts.forEach(({ name, count }) => {
+          for(let i = 0; i < count; i++) entries.push(name);
+        });
+        console.log(`Loaded ${participantCounts.size} participants with ${entries.length} total entries from Google Sheet`);
         renderEntriesList();
         drawWheel();
         return;
@@ -298,13 +306,21 @@
       const stored = localStorage.getItem('heypad_entries');
       if(stored){
         const all = JSON.parse(stored);
-        const rawNames = all.map(e => e.name);
-        const seen = new Set();
-        entries = rawNames.filter(name => {
-          const key = (name || '').toLowerCase().trim();
-          if(!key || seen.has(key)) return false;
-          seen.add(key);
-          return true;
+        const participantCounts = new Map();
+        all.forEach(e => {
+          const name = e && e.name;
+          if(!name) return;
+          let count = 1;
+          if(e.score){
+            const match = String(e.score).match(/^\d+/);
+            count = match ? parseInt(match[0], 10) : 1;
+          }
+          const key = name.toLowerCase().trim();
+          participantCounts.set(key, { name, count: (participantCounts.get(key)?.count || 0) + count });
+        });
+        entries = [];
+        participantCounts.forEach(({ name, count }) => {
+          for(let i = 0; i < count; i++) entries.push(name);
         });
       }
     } catch(err){
@@ -322,11 +338,17 @@
       spinBtn.disabled = true;
     } else {
       noEntries.style.display = 'none';
+      const counts = new Map();
+      entries.forEach(name => {
+        const key = name.toLowerCase().trim();
+        counts.set(key, { name, count: (counts.get(key)?.count || 0) + 1 });
+      });
+      const participants = Array.from(counts.values()).sort((a,b) => a.name.localeCompare(b.name));
       const maxShow = 100;
-      const shown = entries.slice(0, maxShow);
-      let html = shown.map(name => `<li>${name}</li>`).join('');
-      if(entries.length > maxShow){
-        html += `<li style="grid-column:1/-1;text-align:center;font-style:italic;background:transparent;color:var(--muted)">… and ${entries.length - maxShow} more entries</li>`;
+      const shown = participants.slice(0, maxShow);
+      let html = shown.map(p => `<li>${p.name}${p.count > 1 ? ` <span style="color:var(--muted);font-weight:600">(×${p.count})</span>` : ''}</li>`).join('');
+      if(participants.length > maxShow){
+        html += `<li style="grid-column:1/-1;text-align:center;font-style:italic;background:transparent;color:var(--muted)">… and ${participants.length - maxShow} more participants</li>`;
       }
       entriesList.innerHTML = html;
       spinBtn.disabled = false;
