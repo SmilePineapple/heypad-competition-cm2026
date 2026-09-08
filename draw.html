@@ -293,6 +293,7 @@
           for(let i = 0; i < count; i++) entries.push(name);
         });
         console.log(`Loaded ${participantCounts.size} participants with ${entries.length} total entries from Google Sheet`);
+        shuffleArray(entries);
         renderEntriesList();
         drawWheel();
         return;
@@ -326,8 +327,17 @@
     } catch(err){
       console.error('Failed to load entries:', err);
     }
+    shuffleArray(entries);
     renderEntriesList();
     drawWheel();
+  }
+
+  function shuffleArray(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 
   function renderEntriesList(){
